@@ -1,4 +1,6 @@
 # cracksmoker
+<img width="643" height="573" alt="image" src="https://github.com/user-attachments/assets/1778cff6-2baa-4634-846c-a74c0277dfa9" />
+
 # Password Cracker Tool
 
 A powerful and easy-to-use password cracking tool built with Python and Tkinter, capable of performing **dictionary attacks** and **brute-force attacks** to crack common password hashes such as **MD5**, **SHA1**, **SHA256**, **bcrypt**, and **sha512**. The tool utilizes **parallel processing** with **multiprocessing** to speed up the cracking process, and provides a **GUI** for convenient interaction.
