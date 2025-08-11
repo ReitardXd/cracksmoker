@@ -40,7 +40,7 @@ git clone https://github.com/ReitardXd/cracksmoker
 ## Usage
 Launch the GUI
 Run the script to launch the Tkinter GUI:
-```python password_cracker.py```
+```python cracksmoker.py```
 
 ## GUI Features
 Target Hash: Enter the hash that you want to crack. The hash can be in MD5, SHA1, SHA256, bcrypt, or sha512 format.
