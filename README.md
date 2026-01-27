@@ -1,3 +1,6 @@
+##Note
+I acidentally broke the project so its not working  but ill fix the errors and get it working before 10th Feb 
+
 # cracksmoker
 <img width="643" height="573" alt="image" src="https://github.com/user-attachments/assets/1778cff6-2baa-4634-846c-a74c0277dfa9" />
 
