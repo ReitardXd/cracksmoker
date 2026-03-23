@@ -1,116 +1,111 @@
-# Note
-Project still broken writing a script that would automatically setup hashcat and everything else to help ease the user into using this wrapper for it 
 # cracksmoker
-<img width="643" height="573" alt="image" src="https://github.com/user-attachments/assets/1778cff6-2baa-4634-846c-a74c0277dfa9" />
 
-# Password Cracker Tool
+a python GUI frontend for hashcat. point it at a hash, pick your attack mode and flags, hit run — it builds the hashcat command and streams the output live.
 
-A powerful and easy-to-use password cracking tool built with Python and Tkinter, capable of performing **dictionary attacks** and **brute-force attacks** to crack common password hashes such as **MD5**, **SHA1**, **SHA256**, **bcrypt**, and **sha512**. The tool utilizes **parallel processing** with **multiprocessing** to speed up the cracking process, and provides a **GUI** for convenient interaction.
+no cracking logic in python. hashcat does the actual work.
 
-## Features
-- **Supports multiple hash algorithms**: MD5, SHA1, SHA256, bcrypt, sha512.
-- **Parallel processing** with **multiprocessing** for faster cracking.
-- **Dictionary attack** using a customizable wordlist file.
-- **Brute-force attack** with a user-defined character set and password length.
-- **GUI interface** built with Tkinter for an intuitive user experience.
-- **Real-time progress updates** and logging with color-coded output.
+---
 
-## Prerequisites
+## what it does
 
-- Python 3.x
-- Required Python libraries:
-  - `hashlib` (built-in)
-  - `itertools` (built-in)
-  - `tkinter` (built-in)
-  - `multiprocessing` (built-in)
-  - `passlib` (optional, for bcrypt and other salted hash support)
+- detects hash type (MD5, SHA-1, SHA-256, NTLM, bcrypt, WPA, etc.)
+- attack modes: dictionary, combination, brute-force/mask, hybrid
+- mask builder — click tokens (`?l ?u ?d ?s ?a`) to build brute-force patterns
+- min/max length with `--increment` flags for brute mode
+- rules file, output file, workload profile, extra flags
+- live command preview that updates as you change settings
+- streams hashcat stdout directly into the log window
 
-You can install the required libraries using the following:
+---
 
-```bash
-pip install passlib bcrypt tkinter multiprocessing itertools hashlib
-```
-#Note: If passlib is not installed, the tool will fall back to basic unsalted hashes (MD5, SHA1, SHA256). 
+## requirements
 
-Installation
-Clone this repository or download the password_cracker.py file.
+- Python 3.8+
+- hashcat (setup.py handles this)
+- tkinter (usually bundled with Python, setup.py will try to fix it if not)
+
+---
+
+## install & run
+
+clone the repo and run the setup script — it detects your OS, installs hashcat if needed, then launches the GUI:
 
 ```bash
 git clone https://github.com/ReitardXd/cracksmoker
+cd cracksmoker
+python setup.py
 ```
 
-## Usage
-Launch the GUI
-Run the script to launch the Tkinter GUI:
-```python cracksmoker.py```
+or if you already have hashcat installed, just run the GUI directly:
 
-## GUI Features
-Target Hash: Enter the hash that you want to crack. The hash can be in MD5, SHA1, SHA256, bcrypt, or sha512 format.
+```bash
+python cracksmoker.py
+```
 
-## Attack Mode:
-Dictionary: Cracks the hash using a wordlist (dictionary attack).
+---
 
-Brute-Force: Cracks the hash by generating passwords from a custom character set.
+## supported platforms
 
-Wordlist: Provide the path to a wordlist file for dictionary attacks.
+| OS | install method |
+|---|---|
+| Ubuntu / Debian / Kali | `apt-get install hashcat` |
+| Fedora / RHEL | `dnf install hashcat` |
+| Arch / Manjaro | `pacman -Sy hashcat` |
+| macOS | `brew install hashcat` |
+| Windows | `winget install Hashcat.Hashcat` |
 
-Charset & Max Length (Brute-Force Mode): Define the character set (e.g., lowercase letters, digits) and the maximum password length for brute-force attacks.
+---
 
-Threads: Adjust the number of threads for parallel processing (default: number of CPU cores).
+## usage
 
-Progress Bar: Tracks the progress of the attack in real-time.
+1. paste your hash into **TARGET HASH**
+2. select the right **HASH TYPE** from the dropdown
+3. pick an **ATTACK MODE**
+4. fill in wordlist / mask depending on mode
+5. check the command preview looks right
+6. hit **RUN**
 
-Log Window: Displays real-time logs, including success or failure messages.
+### attack modes
 
-## Attack Flow
-Start Attack: Click the "Start Attack" button to begin the attack with the provided hash and attack mode. The attack will run in the background while updating progress.
+| mode | use case |
+|---|---|
+| dictionary | wordlist against a hash |
+| combination | combine two wordlists |
+| brute-force / mask | exhaustive search with a pattern |
+| hybrid dict+mask | wordlist words with mask appended |
+| hybrid mask+dict | mask prepended to wordlist words |
 
-Stop Attack: Click the "Stop Attack" button to terminate the attack early if necessary.
+### mask tokens
 
-## Attack Modes
-Dictionary Attack:
-Select the "Dictionary" attack mode.
+| token | charset |
+|---|---|
+| `?l` | lowercase a-z |
+| `?u` | uppercase A-Z |
+| `?d` | digits 0-9 |
+| `?s` | special characters |
+| `?a` | all printable |
 
-Provide the path to a wordlist file.
-The tool will attempt to crack the hash by comparing each word in the wordlist to the target hash.
+example mask for 8-char lowercase+digit password: `?l?l?l?l?l?l?d?d`
 
-Brute-Force Attack:
-Select the "Brute-Force" attack mode.
+---
 
-Define the charset (e.g., lowercase letters, digits, symbols) and max password length.
-The tool will attempt to crack the hash by generating all possible passwords of varying lengths from the charset.
+## files
 
-Example
-MD5 Hash Example:
-If you have a hash 482c811da5d5b4bc6d497ffa98491e38, you can try cracking it using a wordlist file.
+```
+cracksmoker/
+├── cracksmoker.py   # the GUI
+├── setup.py         # install hashcat + launch
+└── README.md
+```
 
-SHA256 Hash Example:
-Hash 5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8 can be cracked using either a wordlist or brute-force.
+---
 
-## Notes
-Ethical Use: This tool is intended for educational purposes or use in authorized security audits only. Unauthorized use is illegal(dont be a dumbass keep stuff ethical ;)).
+## disclaimer
 
-Performance: The speed of the cracking process is dependent on the hash type, the attack mode, the size of the wordlist, and the number of threads used.
+for educational use and authorized security testing only. don't be an idiot.
 
-Multi-Core Support: The tool uses multiprocessing to speed up the cracking process, especially during brute-force attacks or large wordlist dictionary attacks.
+---
 
-## Contributing
-Feel free to fork this project and submit pull requests with improvements or new features! Contributions are welcome.
+## contributing
 
-Fork the repository.
-
-Create your feature branch (git checkout -b feature-name).
-
-Commit your changes (git commit -am 'Add new feature').
-
-Push to the branch (git push origin feature-name).
-
-Open a pull request.
-
-License
-This project is licensed under the MIT License – see the LICENSE file for details.
-
-## Disclaimer
-This tool is meant for educational and ethical use only. Use it responsibly and only on systems you own or have explicit permission to test.
-
-Happy Cracking!
+fork it, make a branch, open a PR.
