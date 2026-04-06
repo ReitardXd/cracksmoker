@@ -12,6 +12,7 @@ import shlex
 HASH_TYPES = [
     ("MD5",                "0"),
     ("SHA-1",              "100"),
+    ("SHA-224",            "1300"),
     ("SHA-256",            "1400"),
     ("SHA-512",            "1700"),
     ("NTLM",               "1000"),
@@ -73,6 +74,21 @@ class App(tk.Tk):
         self.process = None
         self.stop_event = threading.Event()
         self.hashcat_path = shutil.which("hashcat")
+        self.user_selected_htype = False   # True once user manually picks a type
+
+        # Initialize all vars before _ui() so traces never fire on missing attrs
+        self.hash_var     = tk.StringVar()
+        self.htype_var    = tk.StringVar(value="0")
+        self.mode_var     = tk.StringVar(value="0")
+        self.wl_var       = tk.StringVar()
+        self.wl2_var      = tk.StringVar()
+        self.mask_var     = tk.StringVar()
+        self.min_var      = tk.StringVar(value="1")
+        self.max_var      = tk.StringVar(value="8")
+        self.rules_var    = tk.StringVar()
+        self.out_var      = tk.StringVar()
+        self.workload_var = tk.StringVar(value="2")
+        self.extra_var    = tk.StringVar()
 
         self._ui()
         self._update_cmd()
@@ -110,22 +126,22 @@ class App(tk.Tk):
 
     def _build_left(self, p):
         self._lbl(p, "TARGET HASH")
-        self.hash_var = tk.StringVar()
         self.hash_var.trace_add("write", lambda *_: self._update_cmd())
         e = self._entry(p, textvariable=self.hash_var)
         e.pack(fill=tk.X, pady=(0, 6))
 
         self._lbl(p, "HASH TYPE  -m")
-        self.htype_var = tk.StringVar(value="0")
         combo = ttk.Combobox(p, textvariable=self.htype_var, state="readonly",
                               values=[f"{n}  [{v}]" for n, v in HASH_TYPES])
         combo.current(0)
-        combo.pack(fill=tk.X, pady=(0, 6))
-        combo.bind("<<ComboboxSelected>>", lambda e: self._update_cmd())
+        combo.pack(fill=tk.X, pady=(0, 2))
+        combo.bind("<<ComboboxSelected>>", lambda e: self._user_changed_htype())
         self._style_combo()
+        self.auto_lbl = tk.Label(p, text="", font=("Courier", 8),
+                                  bg=C["bg"], fg=C["cyan"])
+        self.auto_lbl.pack(anchor=tk.W, pady=(0, 4))
 
         self._lbl(p, "ATTACK MODE  -a")
-        self.mode_var = tk.StringVar(value="0")
         for label, val in ATTACK_MODES:
             tk.Radiobutton(p, text=label, variable=self.mode_var, value=val,
                            bg=C["bg"], fg=C["text"], selectcolor=C["panel"],
@@ -134,16 +150,21 @@ class App(tk.Tk):
 
         self._lbl(p, "WORDLIST  (dict / hybrid modes)")
         wf = tk.Frame(p, bg=C["bg"])
-        wf.pack(fill=tk.X, pady=(0, 6))
-        self.wl_var = tk.StringVar()
+        wf.pack(fill=tk.X, pady=(0, 2))
         self.wl_var.trace_add("write", lambda *_: self._update_cmd())
         self._entry(wf, textvariable=self.wl_var).pack(side=tk.LEFT, fill=tk.X, expand=True)
         self._btn(wf, "…", lambda: self._pick_file(self.wl_var)).pack(side=tk.LEFT, padx=(3, 0))
 
+        self._lbl(p, "WORDLIST 2  (combination mode only)")
+        wf2 = tk.Frame(p, bg=C["bg"])
+        wf2.pack(fill=tk.X, pady=(0, 6))
+        self.wl2_var.trace_add("write", lambda *_: self._update_cmd())
+        self._entry(wf2, textvariable=self.wl2_var).pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self._btn(wf2, "…", lambda: self._pick_file(self.wl2_var)).pack(side=tk.LEFT, padx=(3, 0))
+
         self._lbl(p, "MASK  (brute-force / hybrid modes)")
         mf = tk.Frame(p, bg=C["bg"])
         mf.pack(fill=tk.X, pady=(0, 2))
-        self.mask_var = tk.StringVar()
         self.mask_var.trace_add("write", lambda *_: self._update_cmd())
         self._entry(mf, textvariable=self.mask_var).pack(side=tk.LEFT, fill=tk.X, expand=True)
         self._btn(mf, "✕", lambda: self.mask_var.set(""), fg=C["dim"]).pack(side=tk.LEFT, padx=(3, 0))
@@ -163,13 +184,11 @@ class App(tk.Tk):
         lf = tk.Frame(p, bg=C["bg"])
         lf.pack(fill=tk.X, pady=(0, 6))
         tk.Label(lf, text="min:", font=("Courier", 9), bg=C["bg"], fg=C["dim"]).pack(side=tk.LEFT)
-        self.min_var = tk.StringVar(value="1")
         self.min_var.trace_add("write", lambda *_: self._update_cmd())
         tk.Spinbox(lf, from_=1, to=32, width=4, textvariable=self.min_var,
                    bg=C["panel"], fg=C["text"], relief=tk.FLAT,
                    font=("Courier", 9), insertbackground=C["text"]).pack(side=tk.LEFT, padx=(3, 10))
         tk.Label(lf, text="max:", font=("Courier", 9), bg=C["bg"], fg=C["dim"]).pack(side=tk.LEFT)
-        self.max_var = tk.StringVar(value="8")
         self.max_var.trace_add("write", lambda *_: self._update_cmd())
         tk.Spinbox(lf, from_=1, to=32, width=4, textvariable=self.max_var,
                    bg=C["panel"], fg=C["text"], relief=tk.FLAT,
@@ -178,7 +197,6 @@ class App(tk.Tk):
         self._lbl(p, "RULES FILE  -r  [optional]")
         rf = tk.Frame(p, bg=C["bg"])
         rf.pack(fill=tk.X, pady=(0, 6))
-        self.rules_var = tk.StringVar()
         self.rules_var.trace_add("write", lambda *_: self._update_cmd())
         self._entry(rf, textvariable=self.rules_var).pack(side=tk.LEFT, fill=tk.X, expand=True)
         self._btn(rf, "…", lambda: self._pick_file(self.rules_var)).pack(side=tk.LEFT, padx=(3, 0))
@@ -186,7 +204,6 @@ class App(tk.Tk):
         self._lbl(p, "OUTPUT FILE  -o  [optional]")
         of = tk.Frame(p, bg=C["bg"])
         of.pack(fill=tk.X, pady=(0, 6))
-        self.out_var = tk.StringVar()
         self.out_var.trace_add("write", lambda *_: self._update_cmd())
         self._entry(of, textvariable=self.out_var).pack(side=tk.LEFT, fill=tk.X, expand=True)
         self._btn(of, "…", lambda: self._pick_save(self.out_var)).pack(side=tk.LEFT, padx=(3, 0))
@@ -194,7 +211,6 @@ class App(tk.Tk):
         self._lbl(p, "WORKLOAD  -w")
         wl_row = tk.Frame(p, bg=C["bg"])
         wl_row.pack(fill=tk.X, pady=(0, 6))
-        self.workload_var = tk.StringVar(value="2")
         self.workload_var.trace_add("write", lambda *_: self._update_cmd())
         for label, val in WORKLOAD:
             tk.Radiobutton(wl_row, text=label, variable=self.workload_var, value=val,
@@ -203,7 +219,6 @@ class App(tk.Tk):
                            font=("Courier", 9), command=self._update_cmd).pack(side=tk.LEFT, padx=4)
 
         self._lbl(p, "EXTRA FLAGS  [optional]")
-        self.extra_var = tk.StringVar()
         self.extra_var.trace_add("write", lambda *_: self._update_cmd())
         self._entry(p, textvariable=self.extra_var).pack(fill=tk.X)
 
@@ -318,6 +333,22 @@ class App(tk.Tk):
     # COMMAND BUILDER
     # --------------------------------------------------------------------------
 
+    def detect_hash_type(self, h):
+        """Return the hashcat -m code for h, or None if unrecognised."""
+        h = h.strip().lower()
+        if not h:
+            return None
+        # Hex-only hashes: length is the discriminator
+        if all(c in "0123456789abcdef" for c in h):
+            return {32: "0", 40: "100", 56: "1300",
+                    64: "1400", 128: "1700"}.get(len(h))
+        # crypt(3) prefixes
+        if h.startswith("$2"):    return "3200"   # bcrypt  $2a$ / $2b$ / $2y$
+        if h.startswith("$6$"):   return "1800"   # sha512crypt
+        if h.startswith("$5$"):   return "7400"   # sha256crypt
+        if h.startswith("$apr1$"): return "1600"  # MD5 (APR)
+        return None
+
     def _htype_val(self):
         sel = self.htype_var.get()
         try:
@@ -365,12 +396,16 @@ class App(tk.Tk):
 
         if mode == "0":               # dictionary
             if wl:  cmd.append(wl)
-        elif mode == "1":             # combination — needs two wordlists
+        elif mode == "1":             # combination — needs two distinct wordlists
             if wl:
                 cmd.append(wl)
-                cmd.append(wl)
+            wl2 = self.wl2_var.get().strip()
+            if wl2:
+                cmd.append(wl2)
+            elif wl:
+                cmd.append(wl)   # graceful fallback: same list twice
         elif mode == "3":             # brute/mask
-            cmd.append(mask or "?a?a?a?a?a?a?a?a")
+            cmd.append(mask or "?l?l?l?l?d?d")
         elif mode == "6":             # hybrid dict + mask
             if wl:  cmd.append(wl)
             cmd.append(mask or "?a?a?a?a")
@@ -380,7 +415,32 @@ class App(tk.Tk):
 
         return cmd
 
+    def _user_changed_htype(self):
+        """Called when the user manually picks a hash type — disables auto-detect."""
+        self.user_selected_htype = True
+        self._update_cmd()
+
     def _update_cmd(self):
+        h = self.hash_var.get().strip()
+
+        # Clear label and skip auto-detect when field is empty (fix edge-case stale label)
+        if not h:
+            self.auto_lbl.config(text="")
+        elif not self.user_selected_htype:
+            detected = self.detect_hash_type(h)
+            if detected:
+                match = next(
+                    (f"{n}  [{v}]" for n, v in HASH_TYPES if v == detected), None
+                )
+                if match:
+                    self.htype_var.set(match)
+                    self.auto_lbl.config(text="⚡ auto-detected", fg=C["cyan"])
+            else:
+                self.auto_lbl.config(text="")
+        else:
+            # User has manually chosen — show a subtle indicator instead
+            self.auto_lbl.config(text="  manual", fg=C["dim"])
+
         cmd = self._build_cmd()
         self.cmd_label.config(text=" ".join(cmd))
 
@@ -397,6 +457,15 @@ class App(tk.Tk):
         if not self.hash_var.get().strip():
             messagebox.showerror("Error", "Target hash is empty.")
             return
+        if not self.detect_hash_type(self.hash_var.get()):
+            proceed = messagebox.askyesno(
+                "Unknown hash type",
+                "Could not auto-detect the hash type.\n\n"
+                "Double-check that  -m  is set correctly before running.\n\n"
+                "Continue anyway?"
+            )
+            if not proceed:
+                return
 
         self.stop_event.clear()
         self._log_clear()

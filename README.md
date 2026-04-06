@@ -8,13 +8,14 @@ no cracking logic in python. hashcat does the actual work.
 
 ## what it does
 
-- detects hash type (MD5, SHA-1, SHA-256, NTLM, bcrypt, WPA, etc.)
+- auto-detects hash type from the hash you paste (MD5, SHA-1/224/256/512, NTLM, bcrypt, WPA, sha512crypt, sha256crypt, MD5 APR) — picking from the dropdown manually locks it and disables auto-detect for the session
 - attack modes: dictionary, combination, brute-force/mask, hybrid
 - mask builder — click tokens (`?l ?u ?d ?s ?a`) to build brute-force patterns
 - min/max length with `--increment` flags for brute mode
+- second wordlist field for combination mode
 - rules file, output file, workload profile, extra flags
 - live command preview that updates as you change settings
-- streams hashcat stdout directly into the log window
+- streams hashcat stdout directly into the log window, colour-coded by event type
 
 ---
 
@@ -58,8 +59,8 @@ python cracksmoker.py
 
 ## usage
 
-1. paste your hash into **TARGET HASH**
-2. select the right **HASH TYPE** from the dropdown
+1. paste your hash into **TARGET HASH** — the hash type dropdown will auto-detect and update
+2. if auto-detect shows the wrong type, pick the correct one manually from **HASH TYPE** (this locks it for the session)
 3. pick an **ATTACK MODE**
 4. fill in wordlist / mask depending on mode
 5. check the command preview looks right
@@ -95,7 +96,8 @@ example mask for 8-char lowercase+digit password: `?l?l?l?l?l?l?d?d`
 cracksmoker/
 ├── cracksmoker.py   # the GUI
 ├── setup.py         # install hashcat + launch
-└── README.md
+├── README.md
+└── rockyou.txt      # included for testing
 ```
 
 ---
