@@ -97,9 +97,25 @@ cracksmoker/
 ├── cracksmoker.py   # the GUI
 ├── setup.py         # install hashcat + launch
 ├── README.md
-└── rockyou.txt      # included for testing
 ```
+--- 
+## NOTE
 
+```
+```
+``` 
+```
+Its recommended you clone the commonly used password files like rockyou.txt and save them inside the cracksmoker folder just to make it easier for you to run
+dictionary attacks 
+
+I personally use Seclits to crack poorly salted passwords  
+https://github.com/danielmiessler/SecLists/tree/master
+
+
+Feel free to create your own branch and ask for a merge request 
+
+```
+```
 ---
 
 ## disclaimer
