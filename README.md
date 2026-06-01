@@ -101,10 +101,6 @@ cracksmoker/
 --- 
 ## NOTE
 
-```
-```
-``` 
-```
 Its recommended you clone the commonly used password files like rockyou.txt and save them inside the cracksmoker folder just to make it easier for you to run
 dictionary attacks 
 
@@ -114,8 +110,7 @@ https://github.com/danielmiessler/SecLists/tree/master
 
 Feel free to create your own branch and ask for a merge request 
 
-```
-```
+
 ---
 
 ## disclaimer
