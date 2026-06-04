@@ -2,7 +2,7 @@
 
 a python GUI frontend for hashcat. point it at a hash, pick your attack mode and flags, hit run — it builds the hashcat command and streams the output live.
 
-no cracking logic in python. hashcat does the actual work.yhjdcvkh,vcf
+no cracking logic in python. hashcat does the actual work.
 
 ---
 
