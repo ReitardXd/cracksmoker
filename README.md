@@ -121,8 +121,8 @@ For educational use and authorized security testing only. don't be an idiot.
 ## Note
 Looking back at it this thing was a pretty stupid idea i dont see any use for it unless you are just starting out with 
 password crackers like hashcat or john the ripper albeit you could point it to multiple of these 
-tools and it does the password file adding easier since you dont need to remember the exact locations and can just use 
-the file browser 
+tools and it does make the password file adding easier since you dont need to remember the exact locations and can just use 
+the file browser .
 
 
 ---
